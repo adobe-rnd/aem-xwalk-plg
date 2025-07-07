@@ -4,6 +4,7 @@ import createTag from '../../utils/tag.js';
 
 const V3_SITE_KEY = '6LfiKDErAAAAAK_RgBahms-QPJyErQTRElVCprpx';
 const V2_SITE_KEY = '6Le1IkYrAAAAAFKLFRoLHFm2XXBCl5c8iiiWHoxf';
+const base = 'https://3531103-xwalktrial-stage.adobeioruntime.net/api/v1/web/web-api';
 
 /**
  * Loads states based on selected country
@@ -100,11 +101,18 @@ function loadRecaptchaScript() {
   document.head.append(scriptV2);
 }
 
-function showSuccessMessage(form) {
-  const successMessage = createTag('div', { class: 'success-message' });
-  successMessage.innerHTML = 'Your trial request has been submitted successfully. You will receive an email in the next 10 minutes with all details about your trial access';
-  form.replaceWith(successMessage);
+async function checkStatus(form, processId) {
+    const resp = await fetch(base + '/checkStatus?processId=' + processId)
+    const { status } = await resp.json()
+    form.getElementById('output').textContent = JSON.stringify(status, null, 2)
+    if (!status.finished) {
+      setTimeout(checkStatus, 2000)
+    } else {
+      form.getElementById('output').textContent += '\nAll done!'
+    }
 }
+  
+
 
 /**
  * Builds the trial form
@@ -166,7 +174,7 @@ function submitFormData(form) {
   // Convert optIn to boolean
   data.optIn = data.optIn === 'true';
 
-  fetch('https://3531103-xwalktrial-stage.adobeioruntime.net/api/v1/web/web-api/registration', {
+  fetch(base + '/registration', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -175,7 +183,8 @@ function submitFormData(form) {
   })
     .then(async (response) => {
       if (response.ok) {
-        showSuccessMessage(form);
+        const { processId } = await response.json();
+        checkStatus(form, processId);
       } else {
         const err = await response.json();
         throw new Error(err.error ? `${err.error}\nThere was an error submitting your request. Please try again.` : 'There was an error submitting your request. Please try again.');
@@ -617,7 +626,7 @@ function buildForm(block) {
           data.optIn = data.optIn === 'true';
 
           // Submit form data to server using fetch
-          fetch('https://3531103-xwalktrial-stage.adobeioruntime.net/api/v1/web/web-api/registration', {
+          fetch(base + '/registration', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -626,7 +635,8 @@ function buildForm(block) {
           })
             .then(async (response) => {
               if (response.ok) {
-                showSuccessMessage(form);
+                const { processId } = await response.json();
+                checkStatus(form, processId);
               } else {
                 const err = await response.json();
                 if (err.error === 'v2captcha_required') {
