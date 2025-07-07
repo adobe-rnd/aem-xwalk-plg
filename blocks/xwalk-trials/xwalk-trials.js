@@ -102,7 +102,7 @@ function loadRecaptchaScript() {
 }
 
 async function checkStatus(form, processId) {
-    const resp = await fetch(base + '/checkStatus?processId=' + processId)
+    const resp = await fetch(base + '/check-status?processId=' + processId)
     const { status } = await resp.json()
     form.getElementById('output').textContent = JSON.stringify(status, null, 2)
     if (!status.finished) {
