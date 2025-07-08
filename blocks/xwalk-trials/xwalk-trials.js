@@ -103,7 +103,7 @@ function loadRecaptchaScript() {
 
 async function checkStatus(form, processId) {
     const resp = await fetch(base + '/check-status?processId=' + processId)
-    const { status } = await resp.json()
+    const check = await resp.json()
     
     // Find or create modal
     let modal = document.querySelector('#status-modal');
@@ -112,9 +112,9 @@ async function checkStatus(form, processId) {
       document.body.appendChild(modal);
     }
     
-    updateStatusModal(modal, status);
+    updateStatusModal(modal, check);
     
-    if (!status.finished) {
+    if (!check.status.finished) {
       setTimeout(() => checkStatus(form, processId), 2000)
     } else {
       // Show completion message
@@ -141,10 +141,11 @@ function createStatusModal() {
   
   // Create step elements for each major step
   const steps = [
+    { key: 'createUser', label: 'Creating user account' },
+    { key: 'permissions', label: 'Setting up permissions' },
     { key: 'quicksite', label: 'Creating site' },
     { key: 'codeBus', label: 'Configuring site' },
-    { key: 'createUser', label: 'Creating user account' },
-    { key: 'permissions', label: 'Setting up permissions' }
+    { key: 'publishContent', label: 'Publishing content' }
   ];
   
   steps.forEach(step => {
@@ -179,7 +180,7 @@ function createStatusModal() {
 }
 
 function updateStatusModal(modal, status) {
-  const steps = ['quicksite', 'codeBus', 'createUser', 'permissions'];
+  const steps = ['createUser', 'permissions', 'quicksite', 'codeBus', 'publishContent'];
   
   steps.forEach(stepKey => {
     const stepElement = modal.querySelector(`[data-step="${stepKey}"]`);
