@@ -151,7 +151,8 @@ function createStatusModal() {
     { key: 'permissions', label: 'Setting up permissions' },
     { key: 'quicksite', label: 'Creating site' },
     { key: 'codeBus', label: 'Configuring site' },
-    { key: 'publishContent', label: 'Publishing content' }
+    { key: 'publishContent', label: 'Publishing content' },
+    { key: 'sendNotification', label: 'Sending notification' }
   ];
   
   steps.forEach(step => {
@@ -162,11 +163,9 @@ function createStatusModal() {
     
     const spinner = createTag('div', { class: 'spinner' });
     const stepLabel = createTag('span', { class: 'step-label' }, step.label);
-    const stepMessage = createTag('span', { class: 'step-message' });
     
     stepElement.appendChild(spinner);
     stepElement.appendChild(stepLabel);
-    stepElement.appendChild(stepMessage);
     stepsContainer.appendChild(stepElement);
   });
   
@@ -186,7 +185,7 @@ function createStatusModal() {
 }
 
 function updateStatusModal(modal, status) {
-  const steps = ['createUser', 'permissions', 'quicksite', 'codeBus', 'publishContent'];
+  const steps = ['createUser', 'permissions', 'quicksite', 'codeBus', 'publishContent', 'sendNotification'];
   
   steps.forEach(stepKey => {
     const stepElement = modal.querySelector(`[data-step="${stepKey}"]`);
