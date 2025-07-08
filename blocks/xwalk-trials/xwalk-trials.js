@@ -105,22 +105,114 @@ async function checkStatus(form, processId) {
     const resp = await fetch(base + '/check-status?processId=' + processId)
     const { status } = await resp.json()
     
-    // Find or create output element
-    let outputElement = form.querySelector('#output');
-    if (!outputElement) {
-      outputElement = createTag('div', { id: 'output', class: 'status-output' });
-      form.appendChild(outputElement);
+    // Find or create modal
+    let modal = document.querySelector('#status-modal');
+    if (!modal) {
+      modal = createStatusModal();
+      document.body.appendChild(modal);
     }
     
-    outputElement.textContent = JSON.stringify(status, null, 2)
+    updateStatusModal(modal, status);
+    
     if (!status.finished) {
       setTimeout(() => checkStatus(form, processId), 2000)
     } else {
-      outputElement.textContent += '\nAll done!'
+      // Show completion message
+      const completionMessage = modal.querySelector('.completion-message');
+      if (completionMessage) {
+        completionMessage.style.display = 'block';
+      }
     }
 }
-  
 
+function createStatusModal() {
+  const modal = createTag('div', { 
+    id: 'status-modal', 
+    class: 'status-modal' 
+  });
+  
+  const modalContent = createTag('div', { class: 'modal-content' });
+  
+  const header = createTag('div', { class: 'modal-header' });
+  const title = createTag('h2', {}, 'Setting up your trial...');
+  header.appendChild(title);
+  
+  const stepsContainer = createTag('div', { class: 'steps-container' });
+  
+  // Create step elements for each major step
+  const steps = [
+    { key: 'quicksite', label: 'Creating site' },
+    { key: 'codeBus', label: 'Configuring site' },
+    { key: 'createUser', label: 'Creating user account' },
+    { key: 'permissions', label: 'Setting up permissions' }
+  ];
+  
+  steps.forEach(step => {
+    const stepElement = createTag('div', { 
+      class: 'step-item',
+      'data-step': step.key
+    });
+    
+    const spinner = createTag('div', { class: 'spinner' });
+    const stepLabel = createTag('span', { class: 'step-label' }, step.label);
+    const stepMessage = createTag('span', { class: 'step-message' });
+    
+    stepElement.appendChild(spinner);
+    stepElement.appendChild(stepLabel);
+    stepElement.appendChild(stepMessage);
+    stepsContainer.appendChild(stepElement);
+  });
+  
+  const completionMessage = createTag('div', { 
+    class: 'completion-message',
+    style: 'display: none;'
+  });
+  const completionText = createTag('p', {}, 'Your trial is ready! You will receive an email with access details shortly.');
+  completionMessage.appendChild(completionText);
+  
+  modalContent.appendChild(header);
+  modalContent.appendChild(stepsContainer);
+  modalContent.appendChild(completionMessage);
+  modal.appendChild(modalContent);
+  
+  return modal;
+}
+
+function updateStatusModal(modal, status) {
+  const steps = ['quicksite', 'codeBus', 'createUser', 'permissions'];
+  
+  steps.forEach(stepKey => {
+    const stepElement = modal.querySelector(`[data-step="${stepKey}"]`);
+    if (!stepElement) return;
+    
+    const stepData = status[stepKey];
+    const spinner = stepElement.querySelector('.spinner');
+    const stepMessage = stepElement.querySelector('.step-message');
+    
+    if (stepData && stepData.result === 'success') {
+      // Replace spinner with checkmark
+      spinner.innerHTML = '✓';
+      spinner.className = 'checkmark';
+      
+      // Update message
+      if (stepData.message) {
+        stepMessage.textContent = stepData.message;
+      }
+      
+      // Add completed class
+      stepElement.classList.add('completed');
+    } else if (stepData && stepData.result === 'error') {
+      // Show error state
+      spinner.innerHTML = '✗';
+      spinner.className = 'error';
+      stepElement.classList.add('error');
+      
+      if (stepData.message) {
+        stepMessage.textContent = stepData.message;
+      }
+    }
+  });
+}
 
 /**
  * Builds the trial form
