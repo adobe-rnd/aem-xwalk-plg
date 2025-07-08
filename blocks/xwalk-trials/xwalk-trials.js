@@ -209,7 +209,6 @@ function updateStatusModal(modal, status) {
     } else if (stepData && stepData.result === 'error') {
       spinner.innerHTML = '✗';
       spinner.className = 'error';
-      stepElement.classList.add('error');
       if (stepData.message) {
         errorMessage = stepData.message;
         errorStep = stepKey;
@@ -222,7 +221,7 @@ function updateStatusModal(modal, status) {
     const completionMessage = modal.querySelector('.completion-message');
     if (completionMessage) {
       completionMessage.style.display = 'block';
-      completionMessage.innerHTML = `<p><strong>There was an error during the "${errorStep.replace(/([A-Z])/g, ' $1').toLowerCase()}" step:</strong><br>${errorMessage}<br><br>If you need help, please <a href="mailto:sites-trial@adobe.com">contact us at sites-trial@adobe.com</a>.</p>`;
+      completionMessage.innerHTML = `<p><strong>There was an error during the "${errorStep.replace(/([A-Z])/g, ' $1').toLowerCase()}" step:</strong><br>${errorMessage}<br><br>If you need help, please <a href="mailto:aemsitestrial@adobe.com">contact us at aemsitestrial@adobe.com</a>.</p>`;
     }
     return true;
   }
