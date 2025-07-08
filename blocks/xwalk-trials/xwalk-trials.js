@@ -104,11 +104,19 @@ function loadRecaptchaScript() {
 async function checkStatus(form, processId) {
     const resp = await fetch(base + '/check-status?processId=' + processId)
     const { status } = await resp.json()
-    form.getElementById('output').textContent = JSON.stringify(status, null, 2)
+    
+    // Find or create output element
+    let outputElement = form.querySelector('#output');
+    if (!outputElement) {
+      outputElement = createTag('div', { id: 'output', class: 'status-output' });
+      form.appendChild(outputElement);
+    }
+    
+    outputElement.textContent = JSON.stringify(status, null, 2)
     if (!status.finished) {
-      setTimeout(checkStatus, 2000)
+      setTimeout(() => checkStatus(form, processId), 2000)
     } else {
-      form.getElementById('output').textContent += '\nAll done!'
+      outputElement.textContent += '\nAll done!'
     }
 }
   
