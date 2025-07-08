@@ -135,7 +135,13 @@ function createStatusModal() {
   
   const header = createTag('div', { class: 'modal-header' });
   const title = createTag('h2', {}, 'Setting up your trial...');
+  // Add close button
+  const closeButton = createTag('button', { class: 'modal-close', 'aria-label': 'Close dialog', type: 'button' }, '\u00D7');
+  closeButton.addEventListener('click', () => {
+    modal.remove();
+  });
   header.appendChild(title);
+  header.appendChild(closeButton);
   
   const stepsContainer = createTag('div', { class: 'steps-container' });
   
@@ -189,6 +195,9 @@ function updateStatusModal(modal, status) {
     const stepData = status[stepKey];
     const spinner = stepElement.querySelector('.spinner');
     const stepMessage = stepElement.querySelector('.step-message');
+    
+    // Add null checks for spinner and stepMessage
+    if (!spinner || !stepMessage) return;
     
     if (stepData && stepData.result === 'success') {
       // Replace spinner with checkmark
