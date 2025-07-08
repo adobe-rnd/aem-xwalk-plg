@@ -112,7 +112,12 @@ async function checkStatus(form, processId) {
       document.body.appendChild(modal);
     }
     
-    updateStatusModal(modal, check);
+    const hasError = updateStatusModal(modal, check);
+    
+    if (hasError) {
+      // Stop polling and show error message
+      return;
+    }
     
     if (!check.status.finished) {
       setTimeout(() => checkStatus(form, processId), 2000)
@@ -186,47 +191,44 @@ function createStatusModal() {
 
 function updateStatusModal(modal, status) {
   const steps = ['createUser', 'permissions', 'quicksite', 'codeBus', 'publishContent', 'sendNotification'];
-  
+  let errorMessage = null;
+  let errorStep = null;
+
   steps.forEach(stepKey => {
     const stepElement = modal.querySelector(`[data-step="${stepKey}"]`);
     if (!stepElement) return;
     
     const stepData = status[stepKey];
     const spinner = stepElement.querySelector('.spinner');
-    const stepMessage = stepElement.querySelector('.step-message');
-    
-    // Add null checks for spinner and stepMessage
-    if (!spinner || !stepMessage) return;
+    if (!spinner) return;
     
     if (stepData && stepData.result === 'success') {
-      // Replace spinner with checkmark
       spinner.innerHTML = '✓';
       spinner.className = 'checkmark';
-      
-      // Update message
-      if (stepData.message) {
-        stepMessage.textContent = stepData.message;
-      }
-      
-      // Add completed class
       stepElement.classList.add('completed');
     } else if (stepData && stepData.result === 'error') {
-      // Show error state
       spinner.innerHTML = '✗';
       spinner.className = 'error';
       stepElement.classList.add('error');
-      
       if (stepData.message) {
-        stepMessage.textContent = stepData.message;
+        errorMessage = stepData.message;
+        errorStep = stepKey;
       }
     }
   });
+
+  // If there was an error, show it in the completion message and return true
+  if (errorMessage) {
+    const completionMessage = modal.querySelector('.completion-message');
+    if (completionMessage) {
+      completionMessage.style.display = 'block';
+      completionMessage.innerHTML = `<p><strong>There was an error during the "${errorStep.replace(/([A-Z])/g, ' $1').toLowerCase()}" step:</strong><br>${errorMessage}<br><br>If you need help, please <a href="mailto:sites-trial@adobe.com">contact us at sites-trial@adobe.com</a>.</p>`;
+    }
+    return true;
+  }
+  return false;
 }
 
-/**
- * Builds the trial form
- * @returns {HTMLElement} The form element
- */
 /**
  * Extracts template data from the merged template-selection-data within the block
  * @param {HTMLElement} block - The xwalk-trials block containing merged template data
