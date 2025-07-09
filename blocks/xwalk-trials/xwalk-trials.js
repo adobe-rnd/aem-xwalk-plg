@@ -160,8 +160,7 @@ function createStatusModal() {
     { key: 'permissions', label: 'Setting up permissions' },
     { key: 'quicksite', label: 'Creating site' },
     { key: 'codeBus', label: 'Configuring site / repo' },
-    { key: 'publishContent', label: 'Publishing content' },
-    { key: 'sendNotification', label: 'Sending notification' }
+    { key: 'publishContent', label: 'Publishing content' }
   ];
   
   steps.forEach(step => {
@@ -194,7 +193,7 @@ function createStatusModal() {
 }
 
 function updateStatusModal(modal, status) {
-  const steps = ['createUser', 'permissions', 'quicksite', 'codeBus', 'publishContent', 'sendNotification'];
+  const steps = ['createUser', 'permissions', 'quicksite', 'codeBus', 'publishContent'];
   let errorMessage = null;
   let errorStep = null;
   let hasError = false;
@@ -215,7 +214,6 @@ function updateStatusModal(modal, status) {
     } else if (stepData && stepData.result === 'error') {
       spinner.innerHTML = '✗';
       spinner.className = 'error';
-      stepElement.classList.add('error');
       if (stepData.message) {
         errorMessage = stepData.message;
         errorStep = stepKey;
