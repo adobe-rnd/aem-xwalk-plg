@@ -148,6 +148,15 @@ function createStatusModal() {
   const closeButton = createTag('button', { class: 'modal-close', 'aria-label': 'Close dialog', type: 'button' }, '\u00D7');
   closeButton.addEventListener('click', () => {
     modal.remove();
+    // Re-enable form submission when modal is closed
+    const form = document.querySelector('form[action="/createTrials"]');
+    if (form) {
+      const submitButton = form.querySelector('button[type="submit"]');
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Continue';
+      }
+    }
   });
   header.appendChild(title);
   header.appendChild(closeButton);
