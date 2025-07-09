@@ -101,6 +101,13 @@ function loadRecaptchaScript() {
   document.head.append(scriptV2);
 }
 
+function showSuccessMessage(from, processId) {
+  const successMessage = createTag('div', { class: 'success-message' });
+  successMessage.innerHTML = 'Your trial request has been submitted successfully. You will receive an email in the next 10 minutes with all details about your trial access';
+  form.replaceWith(successMessage);
+  checkStatus(from, processId);
+}
+
 async function checkStatus(form, processId) {
     const resp = await fetch(base + '/check-status?processId=' + processId)
     const check = await resp.json()
@@ -139,7 +146,7 @@ function createStatusModal() {
   const modalContent = createTag('div', { class: 'modal-content' });
   
   const header = createTag('div', { class: 'modal-header' });
-  const title = createTag('h2', {}, 'Setting up your trial...');
+  const title = createTag('h2', {}, 'Setting up your environment...');
   // Add close button
   const closeButton = createTag('button', { class: 'modal-close', 'aria-label': 'Close dialog', type: 'button' }, '\u00D7');
   closeButton.addEventListener('click', () => {
@@ -178,7 +185,7 @@ function createStatusModal() {
     class: 'completion-message',
     style: 'display: none;'
   });
-  const completionText = createTag('p', {}, 'Your trial is ready! You will receive an email with access details shortly.');
+  const completionText = createTag('p', {}, 'Your environment is ready! You will receive an email with access details shortly.');
   completionMessage.appendChild(completionText);
   
   modalContent.appendChild(header);
@@ -294,7 +301,7 @@ function submitFormData(form) {
     .then(async (response) => {
       if (response.ok) {
         const { processId } = await response.json();
-        checkStatus(form, processId);
+        showSuccessMessage(form, processId);
       } else {
         const err = await response.json();
         throw new Error(err.error ? `${err.error}\nThere was an error submitting your request. Please try again.` : 'There was an error submitting your request. Please try again.');
@@ -746,7 +753,7 @@ function buildForm(block) {
             .then(async (response) => {
               if (response.ok) {
                 const { processId } = await response.json();
-                checkStatus(form, processId);
+                showSuccessMessage(form, processId);
               } else {
                 const err = await response.json();
                 if (err.error === 'v2captcha_required') {
