@@ -451,6 +451,12 @@
   background: none;
 }
 
+.spinner.stopped {
+  animation: none;
+  border: 2.5px solid #d6d6d6;
+  border-top: 2.5px solid #d6d6d6;
+}
+
 .checkmark {
   width: 22px;
   height: 22px;
@@ -508,6 +514,15 @@
   color: #155724;
   font-weight: 600;
   font-size: 16px;
+}
+
+.completion-message.error-message {
+  background: #f5f5f5;
+  border: 1px solid #d6d6d6;
+}
+
+.completion-message.error-message p {
+  color: #dc3545;
 }
 
 @media (width <= 768px) {

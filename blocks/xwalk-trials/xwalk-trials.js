@@ -197,7 +197,9 @@ function updateStatusModal(modal, status) {
   const steps = ['createUser', 'permissions', 'quicksite', 'codeBus', 'publishContent', 'sendNotification'];
   let errorMessage = null;
   let errorStep = null;
+  let hasError = false;
 
+  // First pass: check for errors and mark completed steps
   steps.forEach(stepKey => {
     const stepElement = modal.querySelector(`[data-step="${stepKey}"]`);
     if (!stepElement) return;
@@ -213,10 +215,32 @@ function updateStatusModal(modal, status) {
     } else if (stepData && stepData.result === 'error') {
       spinner.innerHTML = '✗';
       spinner.className = 'error';
+      stepElement.classList.add('error');
       if (stepData.message) {
         errorMessage = stepData.message;
         errorStep = stepKey;
       }
+      hasError = true;
+    }
+  });
+
+  // Second pass: handle remaining steps based on error state
+  steps.forEach(stepKey => {
+    const stepElement = modal.querySelector(`[data-step="${stepKey}"]`);
+    if (!stepElement) return;
+    
+    const stepData = status[stepKey];
+    const spinner = stepElement.querySelector('.spinner');
+    if (!spinner) return;
+    
+    // If no step data and there's an error, stop the spinner
+    if (!stepData && hasError) {
+      spinner.innerHTML = '';
+      spinner.className = 'spinner stopped';
+    } else if (!stepData && !hasError) {
+      // Keep spinning for steps that haven't completed yet (no error)
+      spinner.innerHTML = '';
+      spinner.className = 'spinner';
     }
   });
 
@@ -225,6 +249,7 @@ function updateStatusModal(modal, status) {
     const completionMessage = modal.querySelector('.completion-message');
     if (completionMessage) {
       completionMessage.style.display = 'block';
+      completionMessage.className = 'completion-message error-message';
       completionMessage.innerHTML = `<p><strong>There was an error during the "${errorStep.replace(/([A-Z])/g, ' $1').toLowerCase()}" step:</strong><br>${errorMessage}<br><br>If you need help, please <a href="mailto:aemsitestrial@adobe.com">contact us at aemsitestrial@adobe.com</a>.</p>`;
     }
     return true;
