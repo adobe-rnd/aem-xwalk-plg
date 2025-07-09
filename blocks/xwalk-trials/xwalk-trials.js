@@ -101,18 +101,17 @@ function loadRecaptchaScript() {
   document.head.append(scriptV2);
 }
 
-function showSuccessMessage(from, processId) {
+function showSuccessMessage(form, processId) {
   const successMessage = createTag('div', { class: 'success-message' });
   successMessage.innerHTML = 'Your trial request has been submitted successfully. You will receive an email in the next 10 minutes with all details about your trial access';
   form.replaceWith(successMessage);
-  checkStatus(from, processId);
+  checkStatus(processId);
 }
 
-async function checkStatus(form, processId) {
+async function checkStatus(processId) {
     const resp = await fetch(base + '/check-status?processId=' + processId)
     const check = await resp.json()
-    
-    // Find or create modal
+
     let modal = document.querySelector('#status-modal');
     if (!modal) {
       modal = createStatusModal();
@@ -122,12 +121,11 @@ async function checkStatus(form, processId) {
     const hasError = updateStatusModal(modal, check);
     
     if (hasError) {
-      // Stop polling and show error message
       return;
     }
     
     if (!check.status.finished) {
-      setTimeout(() => checkStatus(form, processId), 2000)
+      setTimeout(() => checkStatus(processId), 2000)
     } else {
       // Show completion message
       const completionMessage = modal.querySelector('.completion-message');
