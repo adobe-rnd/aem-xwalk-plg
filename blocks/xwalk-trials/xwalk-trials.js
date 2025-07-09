@@ -171,7 +171,8 @@ function createStatusModal() {
     { key: 'permissions', label: 'Setting up permissions' },
     { key: 'quicksite', label: 'Creating site' },
     { key: 'codeBus', label: 'Configuring site / repo' },
-    { key: 'publishContent', label: 'Publishing content' }
+    { key: 'publishContent', label: 'Publishing content' },
+    { key: 'sendNotification', label: 'Sending notification' }
   ];
   
   steps.forEach(step => {
@@ -204,7 +205,7 @@ function createStatusModal() {
 }
 
 function updateStatusModal(modal, status) {
-  const steps = ['createUser', 'permissions', 'quicksite', 'codeBus', 'publishContent'];
+  const steps = ['createUser', 'permissions', 'quicksite', 'codeBus', 'publishContent', 'sendNotification'];
   let errorMessage = null;
   let errorStep = null;
   let hasError = false;
