@@ -101,14 +101,11 @@ function loadRecaptchaScript() {
   document.head.append(scriptV2);
 }
 
-function showSuccessMessage(form, processId) {
-  const successMessage = createTag('div', { class: 'success-message' });
-  successMessage.innerHTML = 'Your trial request has been submitted successfully. You will receive an email in the next 10 minutes with all details about your trial access';
-  form.replaceWith(successMessage);
-  checkStatus(processId);
+function showSuccessMessage(form, completionMessage) {
+  form.replaceWith(completionMessage);
 }
 
-async function checkStatus(processId) {
+async function checkStatus(form, processId) {
     const resp = await fetch(base + '/check-status?processId=' + processId)
     const check = await resp.json()
 
@@ -125,12 +122,14 @@ async function checkStatus(processId) {
     }
     
     if (!check.status.finished) {
-      setTimeout(() => checkStatus(processId), 2000)
+      setTimeout(() => checkStatus(form, processId), 2000)
     } else {
       // Show completion message
       const completionMessage = modal.querySelector('.completion-message');
       if (completionMessage) {
-        completionMessage.style.display = 'block';
+        modal.remove();
+        showSuccessMessage(form, completionMessage);
+        
       }
     }
 }
@@ -160,7 +159,7 @@ function createStatusModal() {
     { key: 'createUser', label: 'Creating user account' },
     { key: 'permissions', label: 'Setting up permissions' },
     { key: 'quicksite', label: 'Creating site' },
-    { key: 'codeBus', label: 'Configuring site' },
+    { key: 'codeBus', label: 'Configuring site / repo' },
     { key: 'publishContent', label: 'Publishing content' },
     { key: 'sendNotification', label: 'Sending notification' }
   ];
@@ -299,7 +298,7 @@ function submitFormData(form) {
     .then(async (response) => {
       if (response.ok) {
         const { processId } = await response.json();
-        showSuccessMessage(form, processId);
+        checkStatus(form, processId);
       } else {
         const err = await response.json();
         throw new Error(err.error ? `${err.error}\nThere was an error submitting your request. Please try again.` : 'There was an error submitting your request. Please try again.');
@@ -751,7 +750,7 @@ function buildForm(block) {
             .then(async (response) => {
               if (response.ok) {
                 const { processId } = await response.json();
-                showSuccessMessage(form, processId);
+                checkStatus(form, processId);
               } else {
                 const err = await response.json();
                 if (err.error === 'v2captcha_required') {
