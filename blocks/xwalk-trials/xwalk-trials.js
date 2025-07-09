@@ -102,7 +102,9 @@ function loadRecaptchaScript() {
 }
 
 function showSuccessMessage(form, completionMessage) {
-  form.replaceWith(completionMessage);
+  const successMessage = createTag('div', { class: 'success-message' });
+  successMessage.innerHTML = completionMessage.innerHTML;
+  form.replaceWith(successMessage);
 }
 
 async function checkStatus(form, processId) {
