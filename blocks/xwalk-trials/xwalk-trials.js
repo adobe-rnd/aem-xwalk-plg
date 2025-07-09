@@ -4,7 +4,7 @@ import createTag from '../../utils/tag.js';
 
 const V3_SITE_KEY = '6LfiKDErAAAAAK_RgBahms-QPJyErQTRElVCprpx';
 const V2_SITE_KEY = '6Le1IkYrAAAAAFKLFRoLHFm2XXBCl5c8iiiWHoxf';
-const base = 'https://3531103-xwalktrial-stage.adobeioruntime.net/api/v1/web/web-api';
+const base = 'https://3531103-xwalktrial.adobeioruntime.net/api/v1/web/web-api';
 
 /**
  * Loads states based on selected country
