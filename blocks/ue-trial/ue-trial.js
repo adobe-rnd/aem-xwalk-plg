@@ -4,7 +4,7 @@ import createTag from '../../utils/tag.js';
 
 const V3_SITE_KEY = '6LfiKDErAAAAAK_RgBahms-QPJyErQTRElVCprpx';
 const V2_SITE_KEY = '6Le1IkYrAAAAAFKLFRoLHFm2XXBCl5c8iiiWHoxf';
-const base = 'https://3531103-xwalktrial-stage.adobeioruntime.net/api/v1/web/web-api';
+const base = 'https://3531103-xwalktrial.adobeioruntime.net/api/v1/web/web-api';
 
 /**
  * Loads states based on selected country
@@ -101,29 +101,11 @@ function loadRecaptchaScript() {
   document.head.append(scriptV2);
 }
 
-function showSuccessMessage(element, status) {
+function showSuccessMessage(element) {
   const successMessage = createTag('div', { class: 'success-message' });
   const completionText = createTag('p', {}, 'Your environment is ready! You will receive an email with access details shortly.');
   successMessage.appendChild(completionText);
   element.replaceWith(successMessage);
-}
-
-async function checkStatus(form, processId) {
-    const resp = await fetch(base + '/check-status?processId=' + processId)
-    const check = await resp.json()
-
-    const hasError = updateStatusInline(form, check);
-
-    if (hasError) {
-      return;
-    }
-
-    if (!check.status.finished) {
-      setTimeout(() => checkStatus(form, processId), 2000)
-    } else {
-      const elementToReplace = form.querySelector('.status-container');
-      showSuccessMessage(elementToReplace, check);
-    }
 }
 
 function createStatusInline(form) {
@@ -144,13 +126,13 @@ function createStatusInline(form) {
     { key: 'permissions', label: 'Setting up permissions' },
     { key: 'codeBus', label: 'Configuring site / repo' },
     { key: 'publishContent', label: 'Publishing content' },
-    { key: 'sendNotification', label: 'Sending notification' }
+    { key: 'sendNotification', label: 'Sending notification' },
   ];
 
-  steps.forEach(step => {
+  steps.forEach((step) => {
     const stepElement = createTag('div', {
       class: 'step-item',
-      'data-step': step.key
+      'data-step': step.key,
     });
 
     const spinner = createTag('div', { class: 'spinner' });
@@ -163,12 +145,12 @@ function createStatusInline(form) {
 
   const errorContainer = createTag('div', {
     class: 'error-container',
-    style: 'display: none;'
+    style: 'display: none;',
   });
 
   const retryButton = createTag('button', {
     class: 'retry-button',
-    type: 'button'
+    type: 'button',
   }, 'Try Again');
 
   errorContainer.appendChild(retryButton);
@@ -191,7 +173,7 @@ function updateStatusInline(form, status) {
     statusContainer = createStatusInline(form);
   }
 
-  steps.forEach(stepKey => {
+  steps.forEach((stepKey) => {
     const stepElement = statusContainer.querySelector(`[data-step="${stepKey}"]`);
     if (!stepElement) return;
 
@@ -215,7 +197,7 @@ function updateStatusInline(form, status) {
   });
 
   // Second pass: handle remaining steps based on error state
-  steps.forEach(stepKey => {
+  steps.forEach((stepKey) => {
     const stepElement = statusContainer.querySelector(`[data-step="${stepKey}"]`);
     if (!stepElement) return;
 
@@ -254,6 +236,7 @@ function updateStatusInline(form, status) {
         const block = statusContainer.closest('.xwalk-trials');
         if (block) {
           statusContainer.remove();
+          // eslint-disable-next-line no-use-before-define
           const newForm = buildForm(block);
           const formSection = block.querySelector('.form-section');
           if (formSection) {
@@ -268,6 +251,24 @@ function updateStatusInline(form, status) {
   return false;
 }
 
+async function checkStatus(form, processId) {
+  const resp = await fetch(`${base}/check-status?processId=${processId}`);
+  const check = await resp.json();
+
+  const hasError = updateStatusInline(form, check);
+
+  if (hasError) {
+    return;
+  }
+
+  if (!check.status.finished) {
+    setTimeout(() => checkStatus(form, processId), 2000);
+  } else {
+    const elementToReplace = form.querySelector('.status-container');
+    showSuccessMessage(elementToReplace, check);
+  }
+}
+
 /**
  * Extracts template data from the merged template-selection-data within the block
  * @param {HTMLElement} block - The xwalk-trials block containing merged template data
@@ -275,12 +276,8 @@ function updateStatusInline(form, status) {
  */
 function extractTemplatesFromBlock(block) {
   const templates = [];
-  // Look for the merged template-selection-data within this block
-  const templateData = block.querySelector('.template-selection-data');
 
-  if (!templateData) return templates;
-  // Get all template rows from the template-selection-data
-  const templateRows = templateData.querySelectorAll(':scope > div');
+  const templateRows = block.querySelectorAll(':scope > div:not(:first-child)');
 
   templateRows.forEach((row) => {
     const cells = row.querySelectorAll(':scope > div');
@@ -324,7 +321,7 @@ function submitFormData(form) {
   // Convert optIn to boolean
   data.optIn = data.optIn === 'true';
 
-  fetch(base + '/registration', {
+  fetch(`${base}/registration`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -354,7 +351,7 @@ function buildForm(block) {
 
   // Business email
   const emailField = createTag('div', { class: 'form-field' });
-  const emailLabel = createTag('label', { for: 'business-email' }, 'Business email');
+  const emailLabel = createTag('label', { for: 'business-email' }, 'E-Mail');
   const emailInput = createTag('input', {
     type: 'email',
     id: 'business-email',
@@ -362,67 +359,6 @@ function buildForm(block) {
     required: 'true',
   });
   emailField.append(emailLabel, emailInput);
-
-  // Name fields (first, last) in a row
-  const nameRow = createTag('div', { class: 'form-row' });
-
-  // First name
-  const firstNameField = createTag('div', { class: 'form-field' });
-  const firstNameLabel = createTag('label', { for: 'first-name' }, 'First name');
-  const firstNameInput = createTag('input', {
-    type: 'text',
-    id: 'first-name',
-    name: 'firstName',
-    required: 'true',
-  });
-  firstNameField.append(firstNameLabel, firstNameInput);
-
-  // Last name
-  const lastNameField = createTag('div', { class: 'form-field' });
-  const lastNameLabel = createTag('label', { for: 'last-name' }, 'Last name');
-  const lastNameInput = createTag('input', {
-    type: 'text',
-    id: 'last-name',
-    name: 'lastName',
-    required: 'true',
-  });
-  lastNameField.append(lastNameLabel, lastNameInput);
-
-  nameRow.append(firstNameField, lastNameField);
-
-  // Company name
-  const companyField = createTag('div', { class: 'form-field' });
-  const companyLabel = createTag('label', { for: 'company-name' }, 'Company name');
-  const companyInput = createTag('input', {
-    type: 'text',
-    id: 'company-name',
-    name: 'company',
-    required: 'true',
-  });
-  companyField.append(companyLabel, companyInput);
-
-  // User role dropdown
-  const roleField = createTag('div', { class: 'form-field' });
-  const roleLabel = createTag('label', { for: 'user-role' }, 'User role');
-  const roleSelect = createTag('select', {
-    id: 'user-role',
-    name: 'persona',
-    required: 'true',
-  });
-
-  // Add role options
-  const roles = [
-    { value: 'business', text: 'Practitioner' },
-    { value: 'developer', text: 'Developer' },
-  ];
-
-  roles.forEach((role) => {
-    const option = createTag('option', { value: role.value }, role.text);
-    if (role.value === 'business') option.selected = true;
-    roleSelect.append(option);
-  });
-
-  roleField.append(roleLabel, roleSelect);
 
   // Template visual selector
   const templateField = createTag('div', { class: 'form-field template-selector-field' });
@@ -510,14 +446,15 @@ function buildForm(block) {
   templateField.append(templateLabel, templateGrid, templateInput);
 
   // GitHub ID (moved after template)
-  const githubField = createTag('div', { class: 'form-field', id: 'github-field', style: 'display: none;' });
-  const githubLabel = createTag('label', { for: 'github-id' }, 'GitHub ID');
+  const githubField = createTag('div', { class: 'form-field', id: 'github-field' });
+  const githubLabel = createTag('label', { for: 'github-id' }, 'GitHub ID (optional)');
   const githubInput = createTag('input', {
     type: 'text',
     id: 'github-id',
     name: 'githubId',
   });
-  githubField.append(githubLabel, githubInput);
+  const githubHelpText = createTag('p', { class: 'help-text' }, 'If you provide your GitHub ID we will also set up a GitHub repo with project files so you can do code and style changes.');
+  githubField.append(githubLabel, githubInput, githubHelpText);
 
   // Country/Region and State/Province in a row
   const locationRow = createTag('div', { class: 'form-row' });
@@ -660,39 +597,38 @@ function buildForm(block) {
   const agreementText = createTag('p', {}, 'By clicking on "Continue", I agree that:');
 
   const terms = createTag('ul');
-  const term1 = createTag('li', {}, 'I have read and accepted the ');
-  const termsLink = createTag('a', { href: '#', target: '_blank' }, 'Terms of Use');
-  term1.append(termsLink);
-  term1.append('.');
 
-  const term2 = createTag('li', {}, 'The ');
-  const adobeLink = createTag('a', { href: '#', target: '_blank' }, 'Adobe family of companies');
-  term2.append(adobeLink);
-  term2.append(' may keep me informed with ');
-  const personalizedLink = createTag('a', { href: '#', target: '_blank' }, 'personalized');
-  term2.append(personalizedLink);
-  term2.append(' calls about products and services.');
+  const term1 = createTag('li', {}, 'The ');
+  const adobeLink = createTag('a', { href: 'https://www.adobe.com/about-adobe.html', target: '_blank' }, 'Adobe family of companies');
+  term1.append(adobeLink);
+  term1.append(' may keep me informed with ');
+  const personalizedLink = createTag('a', { href: 'https://www.adobe.com/privacy.html', target: '_blank' }, 'personalized');
+  term1.append(personalizedLink);
+  term1.append(' calls about products and services.');
 
-  terms.append(term1, term2);
+  terms.append(term1);
 
   const privacyText = createTag('p', {}, 'See our ');
-  const privacyLink = createTag('a', { href: '#', target: '_blank' }, 'Privacy Policy');
+  const privacyLink = createTag('a', { href: 'https://www.adobe.com/privacy/policy.html', target: '_blank' }, 'Privacy Policy');
   privacyText.append(privacyLink);
   privacyText.append(' for more details or to opt-out at any time.');
 
   agreement.append(agreementText, terms, privacyText);
 
-  // Contact permission checkbox
-  const contactPermission = createTag('div', { class: 'form-field checkbox-field' });
-  const contactCheckbox = createTag('input', {
+  // Terms and Conditions checkbox
+  const termsAndConditions = createTag('div', { class: 'form-field checkbox-field' });
+  const termsAndConditionsCheckbox = createTag('input', {
     type: 'checkbox',
-    id: 'contact-permission',
-    name: 'optIn',
+    id: 'terms-and-conditions',
+    name: 'termsAndConditions',
     value: 'true',
-    checked: true,
+    required: 'true',
   });
-  const contactLabel = createTag('label', { for: 'contact-permission' }, 'Allow Adobe to contact me to provide more information');
-  contactPermission.append(contactCheckbox, contactLabel);
+  const termsAndConditionsLabel = createTag('label', { for: 'terms-and-conditions' }, 'I have read and accepted the ');
+  const termsLink = createTag('a', { href: './ue-trial-terms.pdf', target: '_blank' }, 'Terms of Use');
+  termsAndConditionsLabel.append(termsLink);
+  termsAndConditionsLabel.append('.');
+  termsAndConditions.append(termsAndConditionsCheckbox, termsAndConditionsLabel);
 
   const verInput = createTag('input', {
     type: 'hidden',
@@ -723,13 +659,10 @@ function buildForm(block) {
   // Append all elements to form
   form.append(
     emailField,
-    nameRow,
-    companyField,
-    roleField,
     githubField,
     templateField,
     agreement,
-    contactPermission,
+    termsAndConditions,
     verInput,
     recaptchaField,
     v2container,
@@ -776,7 +709,7 @@ function buildForm(block) {
           data.optIn = data.optIn === 'true';
 
           // Submit form data to server using fetch
-          fetch(base + '/registration', {
+          fetch(`${base}/registration`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -825,19 +758,6 @@ function buildForm(block) {
     }
   });
 
-  // Add GitHub field visibility based on role selection
-  roleSelect.addEventListener('change', () => {
-    const selectedRole = roleSelect.value;
-    if (selectedRole === 'developer') {
-      githubField.style.display = 'flex';
-      githubInput.setAttribute('required', 'true');
-    } else {
-      githubField.style.display = 'none';
-      githubInput.removeAttribute('required');
-      githubInput.value = '';
-    }
-  });
-
   return form;
 }
 
@@ -846,7 +766,7 @@ export default function decorate(block) {
   loadRecaptchaScript();
 
   // Get the original content from the block (excluding template-selection-data)
-  const originalContent = block.querySelector(':scope > div:not(.template-selection-data)');
+  const infoContent = block.querySelector(':scope > div:first-child');
 
   // Create a new layout with two columns
   const formSection = createTag('div', { class: 'form-section' });
@@ -854,9 +774,9 @@ export default function decorate(block) {
 
   // Move the original content to the trial info section
   const trialInfo = createTag('div', { class: 'trial-info' });
-  if (originalContent) {
+  if (infoContent) {
     // Clone the original content and preserve its structure
-    trialInfo.append(originalContent.cloneNode(true));
+    trialInfo.append(infoContent.cloneNode(true));
   }
 
   // Clear the block and add the new layout
